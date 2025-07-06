@@ -1,0 +1,572 @@
+basePath: /
+definitions:
+  core.AcknowledgmentStatus:
+    enum:
+    - ack
+    - nack
+    - wip
+    type: string
+    x-enum-varnames:
+    - ACK
+    - NACK
+    - WIP
+  core.ConnectionInfo:
+    properties:
+      connected_at:
+        type: string
+      connection_id:
+        type: string
+      id:
+        type: string
+      last_ping_at:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
+    type: object
+  core.ConnectionStatus:
+    enum:
+    - active
+    - inactive
+    - disconnected
+    type: string
+    x-enum-varnames:
+    - ACTIVE
+    - INACTIVE
+    - DISCONNECTED
+  core.HealthCheckResponse:
+    properties:
+      active_connections:
+        type: integer
+      database_status:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  core.MessageHistory:
+    properties:
+      acknowledged_at:
+        type: string
+      connection:
+        $ref: '#/definitions/core.WebSocketConnection'
+      connection_id:
+        type: string
+      delivered_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: string
+      message_content:
+        type: string
+      message_type:
+        type: string
+      notification:
+        allOf:
+        - $ref: '#/definitions/core.Notification'
+        description: Relationships
+      notification_id:
+        type: string
+      retry_count:
+        type: integer
+      sent_at:
+        type: string
+      status:
+        $ref: '#/definitions/core.MessageStatus'
+      user_id:
+        type: string
+    type: object
+  core.MessageStatus:
+    enum:
+    - sent
+    - delivered
+    - acknowledged
+    - failed
+    type: string
+    x-enum-varnames:
+    - SENT
+    - DELIVERED
+    - ACKNOWLEDGED
+    - FAILED
+  core.Notification:
+    properties:
+      acknowledgment_status:
+        $ref: '#/definitions/core.AcknowledgmentStatus'
+      acknowledgment_time:
+        type: string
+      action_type:
+        type: string
+      created_at:
+        type: string
+      data:
+        type: string
+      entity:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      messages:
+        items:
+          $ref: '#/definitions/core.MessageHistory'
+        type: array
+      persistent:
+        type: boolean
+      priority:
+        type: integer
+      recipients:
+        description: Relationships
+        items:
+          $ref: '#/definitions/core.NotificationRecipient'
+        type: array
+      retry_count:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: string
+    type: object
+  core.NotificationRecipient:
+    properties:
+      delivered_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: string
+      notification:
+        allOf:
+        - $ref: '#/definitions/core.Notification'
+        description: Relationships
+      notification_id:
+        type: string
+      read_at:
+        type: string
+      recipient_id:
+        type: string
+      recipient_type:
+        type: string
+      retry_count:
+        type: integer
+      sent_at:
+        type: string
+      status:
+        $ref: '#/definitions/core.RecipientStatus'
+    type: object
+  core.NotificationRequest:
+    properties:
+      action_type:
+        type: string
+      data:
+        additionalProperties: true
+        type: object
+      entity:
+        type: string
+      expires_at:
+        type: string
+      message:
+        type: string
+      persistent:
+        type: boolean
+      priority:
+        type: integer
+      recipient_ids:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        type: string
+    required:
+    - action_type
+    - entity
+    - message
+    - title
+    - type
+    type: object
+  core.NotificationResponse:
+    properties:
+      created_at:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  core.RecipientStatus:
+    enum:
+    - pending
+    - sent
+    - delivered
+    - read
+    - failed
+    type: string
+    x-enum-varnames:
+    - PENDING
+    - SENT_REC
+    - DELIVERED_REC
+    - READ
+    - FAILED_REC
+  core.WebSocketConnection:
+    properties:
+      connected_at:
+        type: string
+      connection_id:
+        type: string
+      hostname:
+        type: string
+      id:
+        type: string
+      ip_address:
+        type: string
+      last_ping_at:
+        type: string
+      messages:
+        description: Relationships
+        items:
+          $ref: '#/definitions/core.MessageHistory'
+        type: array
+      metadata:
+        type: string
+      status:
+        $ref: '#/definitions/core.ConnectionStatus'
+      user_agent:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: dev@wekart.com
+    name: WeKart Development Team
+  description: Enhanced real-time messaging API for WeKart platform with comprehensive
+    WebSocket support, notification management, and database persistence.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: WeKart WebSockets API
+  version: 1.0.0
+paths:
+  /api/v1/admin/connections/cleanup:
+    delete:
+      description: Remove inactive WebSocket connections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Cleanup Connections
+      tags:
+      - admin
+  /api/v1/admin/connections/details:
+    get:
+      description: Get detailed information about all connections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Connection Details
+      tags:
+      - admin
+  /api/v1/admin/maintenance/migrate:
+    post:
+      description: Run database migrations for the WebSocket service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Run Migrations
+      tags:
+      - admin
+  /api/v1/connections:
+    get:
+      description: Returns detailed information about all active WebSocket connections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/core.ConnectionInfo'
+            type: array
+      summary: Get Active Connections
+      tags:
+      - connections
+  /api/v1/health:
+    get:
+      description: Returns comprehensive health status of the WebSocket service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.HealthCheckResponse'
+      summary: Enhanced Health Check
+      tags:
+      - health
+  /api/v1/messages/history/{user_id}:
+    get:
+      description: Get message history for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: 'Limit number of messages (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Offset for pagination (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/core.MessageHistory'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Message History
+      tags:
+      - messages
+  /api/v1/messages/send:
+    post:
+      consumes:
+      - application/json
+      description: Send a custom message to a specific user
+      parameters:
+      - description: Message data
+        in: body
+        name: message
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send Message
+      tags:
+      - messages
+  /api/v1/notifications/acknowledge/{notification_id}:
+    put:
+      description: Mark a notification as acknowledged
+      parameters:
+      - description: Notification ID
+        in: path
+        name: notification_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Acknowledge Notification
+      tags:
+      - notifications
+  /api/v1/notifications/broadcast:
+    post:
+      consumes:
+      - application/json
+      description: Broadcast a notification to all connected users
+      parameters:
+      - description: Broadcast message data
+        in: body
+        name: notification
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Broadcast Notification
+      tags:
+      - notifications
+  /api/v1/notifications/pending/{user_id}:
+    get:
+      description: Get all pending notifications for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/core.Notification'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Pending Notifications
+      tags:
+      - notifications
+  /api/v1/notifications/send:
+    post:
+      consumes:
+      - application/json
+      description: Send a notification to a specific user via WebSocket
+      parameters:
+      - description: Notification data
+        in: body
+        name: notification
+        required: true
+        schema:
+          $ref: '#/definitions/core.NotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.NotificationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send Notification
+      tags:
+      - notifications
+  /api/v1/stats:
+    get:
+      description: Returns detailed statistics about WebSocket connections and messages
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Enhanced Statistics
+      tags:
+      - statistics
+  /api/v1/ws:
+    get:
+      consumes:
+      - application/json
+      description: Upgrade HTTP connection to WebSocket with enhanced features and
+        database persistence
+      parameters:
+      - description: JWT Session ID
+        in: query
+        name: session_id
+        required: true
+        type: string
+      - description: Hostname
+        in: query
+        name: hostname
+        type: string
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Enhanced WebSocket Connection
+      tags:
+      - websocket
+swagger: "2.0"
+tags:
+- description: WebSocket connection management
+  name: websocket
+- description: Notification operations
+  name: notifications
+- description: Message operations
+  name: messages
+- description: Health checks and monitoring
+  name: health
+- description: Administrative operations
+  name: admin
